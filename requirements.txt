@@ -1,0 +1,25 @@
+# Core dependencies
+gradio>=4.0.0
+qdrant-client>=1.7.0
+sentence-transformers>=2.2.0
+torch>=2.0.0
+
+# Document processing
+unstructured>=0.10.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# NLTK for text processing
+nltk>=3.8.0
+
+# LLM options (choose one or both)
+# Option 1: Local LLM via Ollama
+ollama>=0.1.0
+
+# Option 2: OpenAI (optional - requires API key)
+openai>=1.0.0
+
+# Utilities
+numpy>=1.24.0
+requests>=2.28.0
+tqdm>=4.65.0

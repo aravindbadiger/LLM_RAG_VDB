@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info
+.eggs
+*.egg
+.mypy_cache
+.pytest_cache
+
+# Virtual environments
+venv
+env
+.venv
+.env.local
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Data (mounted as volumes)
+data/
+content/
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+*.md
+!README.md
+
+# Local storage (mounted as volumes)
+qdrant_storage/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
