@@ -1,4 +1,4 @@
-.PHONY: help build up down logs shell schema-list schema-create schema-delete ingest-wiki ingest-url ingest-files ingest-python-docs clean pull-model list-models
+.PHONY: help build up up-ollama down logs shell schema-list schema-create schema-delete ingest-wiki ingest-url ingest-files ingest-python-docs clean pull-model list-models start-ollama stop-ollama
 
 # Default target
 help:
@@ -7,14 +7,17 @@ help:
 	@echo ""
 	@echo "Setup & Run:"
 	@echo "  make build          - Build Docker images"
-	@echo "  make up             - Start all services (Qdrant + App)"
+	@echo "  make up             - Start Qdrant + App (for OpenAI/GHCP)"
+	@echo "  make up-ollama      - Start all services including Ollama"
 	@echo "  make down           - Stop all services"
 	@echo "  make logs           - View logs"
 	@echo "  make shell          - Open shell in app container"
 	@echo ""
-	@echo "Model Management:"
+	@echo "Ollama Management:"
+	@echo "  make start-ollama   - Start Ollama container only"
+	@echo "  make stop-ollama    - Stop Ollama container"
 	@echo "  make pull-model MODEL=llama3.2  - Pull a model into Ollama"
-	@echo "  make list-models                - List available models"
+	@echo "  make list-models    - List available models"
 	@echo ""
 	@echo "Schema Management:"
 	@echo "  make schema-list    - List all collections"
@@ -47,14 +50,27 @@ build:
 	docker compose build
 
 up:
-	docker compose up -d
+	docker compose up -d qdrant app
 	@echo ""
-	@echo "Services started!"
+	@echo "Services started (Qdrant + App)!"
 	@echo "  - Qdrant:  http://localhost:6333"
 	@echo "  - RAG App: http://localhost:7860"
+	@echo ""
+	@echo "Using LLM_PROVIDER from .env (default: ollama)"
+	@echo "For Ollama, run: make start-ollama && make pull-model"
+
+up-ollama:
+	docker compose --profile ollama up -d
+	@echo ""
+	@echo "All services started (including Ollama)!"
+	@echo "  - Qdrant:  http://localhost:6333"
+	@echo "  - Ollama:  http://localhost:11434"
+	@echo "  - RAG App: http://localhost:7860"
+	@echo ""
+	@echo "Don't forget to pull a model: make pull-model MODEL=llama3.2"
 
 down:
-	docker compose down
+	docker compose --profile ollama down
 
 logs:
 	docker compose logs -f
@@ -65,8 +81,17 @@ shell:
 rebuild: down build up
 
 # =============================================================================
-# Model Management
+# Ollama Management
 # =============================================================================
+
+start-ollama:
+	docker compose --profile ollama up -d ollama
+	@echo "Ollama started at http://localhost:11434"
+	@echo "Pull a model with: make pull-model MODEL=llama3.2"
+
+stop-ollama:
+	docker compose --profile ollama stop ollama
+	@echo "Ollama stopped"
 
 MODEL ?= llama3.2
 

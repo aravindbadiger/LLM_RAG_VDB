@@ -1,6 +1,6 @@
 """
 LLM (Large Language Model) module.
-Supports multiple providers: Ollama (local) and OpenAI.
+Supports multiple providers: Ollama (local), OpenAI, and GitHub Copilot.
 """
 from typing import List, Dict, Generator, Optional
 from abc import ABC, abstractmethod
@@ -143,7 +143,9 @@ class OpenAILLM(BaseLLM):
             messages=messages,
             stream=False
         )
-        return response.choices[0].message.content
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        return ""
     
     def generate_stream(self, messages: List[Dict[str, str]]) -> Generator[str, None, None]:
         """
@@ -162,7 +164,103 @@ class OpenAILLM(BaseLLM):
         )
         
         for chunk in stream:
-            if chunk.choices[0].delta.content:
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+
+class GitHubCopilotLLM(BaseLLM):
+    """
+    GitHub Models LLM provider.
+    Uses GitHub Models API with OpenAI-compatible interface.
+    Requires GITHUB_TOKEN (from gh auth token) and a Copilot subscription.
+    """
+    
+    def __init__(self, model: str = None, token: str = None):
+        """
+        Initialize GitHub Models client.
+        
+        Args:
+            model: Model name (e.g., "gpt-4o", "gpt-4o-mini", "o1-preview").
+            token: GitHub token. If not provided, attempts to get from gh CLI.
+        """
+        self.model = model or config.GHCP_MODEL
+        self.token = token or config.GITHUB_TOKEN
+        
+        # Try to get token from gh CLI if not provided
+        if not self.token:
+            self.token = self._get_token_from_gh_cli()
+        
+        if not self.token:
+            raise ValueError(
+                "GitHub token not found. Either:\n"
+                "  1. Set GITHUB_TOKEN environment variable\n"
+                "  2. Run 'gh auth login' to authenticate with GitHub CLI"
+            )
+        
+        try:
+            from openai import OpenAI
+            self._client = OpenAI(
+                api_key=self.token,
+                base_url=config.GHCP_BASE_URL
+            )
+            print(f"Connected to GitHub Models API. Using model: {self.model}")
+        except ImportError:
+            raise ImportError("Please install openai: pip install openai")
+    
+    def _get_token_from_gh_cli(self) -> Optional[str]:
+        """Attempt to get GitHub token from gh CLI."""
+        import subprocess
+        try:
+            result = subprocess.run(
+                ["gh", "auth", "token"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                return result.stdout.strip()
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+        return None
+    
+    def generate(self, messages: List[Dict[str, str]], stream: bool = False) -> str:
+        """
+        Generate a response.
+        
+        Args:
+            messages: List of message dicts with 'role' and 'content'.
+            stream: Whether to stream (ignored, use generate_stream instead).
+            
+        Returns:
+            The generated response text.
+        """
+        response = self._client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            stream=False
+        )
+        if response.choices and len(response.choices) > 0:
+            return response.choices[0].message.content
+        return ""
+    
+    def generate_stream(self, messages: List[Dict[str, str]]) -> Generator[str, None, None]:
+        """
+        Generate a streaming response.
+        
+        Args:
+            messages: List of message dicts with 'role' and 'content'.
+            
+        Yields:
+            Chunks of the generated response.
+        """
+        stream = self._client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            stream=True
+        )
+        
+        for chunk in stream:
+            if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
 
 
@@ -213,6 +311,14 @@ def get_llm(provider: str = None) -> BaseLLM:
             return OpenAILLM()
         except Exception as e:
             print(f"Failed to initialize OpenAI: {e}")
+            print("Falling back to Mock LLM")
+            return MockLLM()
+    
+    elif provider.lower() in ("ghcp", "github-copilot", "github_copilot", "copilot"):
+        try:
+            return GitHubCopilotLLM()
+        except Exception as e:
+            print(f"Failed to initialize GitHub Copilot: {e}")
             print("Falling back to Mock LLM")
             return MockLLM()
     

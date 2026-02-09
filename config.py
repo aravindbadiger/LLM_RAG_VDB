@@ -64,6 +64,13 @@ OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-3.5-turbo")
 
+# Option 3: Use GitHub Models (requires GitHub token + Copilot subscription)
+# Get token via: gh auth token, or set GITHUB_TOKEN env var
+# Available models: gpt-4o, gpt-4o-mini, o1-preview, o1-mini, etc.
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
+GHCP_MODEL = os.environ.get("GHCP_MODEL", "gpt-4o")  # or "gpt-4o-mini", "o1-preview"
+GHCP_BASE_URL = os.environ.get("GHCP_BASE_URL", "https://models.inference.ai.azure.com")
+
 # Gradio UI settings
 GRADIO_SERVER_NAME = os.environ.get("GRADIO_SERVER_NAME", "0.0.0.0")
 GRADIO_SERVER_PORT = int(os.environ.get("GRADIO_SERVER_PORT", "7860"))

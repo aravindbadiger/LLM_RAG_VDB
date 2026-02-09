@@ -20,10 +20,12 @@ services:
     networks:
       - rag-network
 
-  # Ollama LLM Service
+  # Ollama LLM Service (optional - use profile to enable)
   ollama:
     image: ollama/ollama:latest
     container_name: rag-ollama
+    profiles:
+      - ollama
     ports:
       - "${OLLAMA_PORT:-11434}:11434"
     volumes:
@@ -54,15 +56,16 @@ services:
       - QDRANT_PORT=6333
       - QDRANT_COLLECTION=${QDRANT_COLLECTION:-python_knowledge}
       - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GHCP_MODEL=${GHCP_MODEL:-gpt-4o}
+      - GHCP_BASE_URL=${GHCP_BASE_URL:-https://api.githubcopilot.com}
       - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
       - GRADIO_SERVER_NAME=0.0.0.0
     depends_on:
       qdrant:
-        condition: service_healthy
-      ollama:
         condition: service_healthy
     restart: unless-stopped
     networks:
