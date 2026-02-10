@@ -6,6 +6,77 @@ A complete Retrieval-Augmented Generation (RAG) system for querying Python docum
 - **Gradio** for the web UI
 - **Ollama** or **OpenAI** for LLM responses
 
+## 🚀 Quick Start
+
+### 1. Setup Environment
+
+```bash
+cd rag_project
+
+# Copy the environment template
+cp .env.example .env
+```
+
+### 2. Configure LLM Provider
+
+Edit `.env` and set your preferred LLM provider:
+
+**Option A: Ollama (Local, Free) - Recommended**
+
+No API key needed - runs completely locally:
+```bash
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=llama3.2
+```
+
+**Option B: GitHub Copilot (GHCP)**
+
+Requires a GitHub Copilot subscription. Get your token using GitHub CLI:
+
+```bash
+# Install GitHub CLI if not already installed
+brew install gh  # macOS
+# or: sudo apt install gh  # Ubuntu
+
+# Login to GitHub
+gh auth login
+
+# Get your auth token
+gh auth token
+```
+
+Add the token to your `.env` file:
+```bash
+LLM_PROVIDER=ghcp
+GITHUB_TOKEN=gho_your_token_here
+GHCP_MODEL=gpt-4o
+```
+
+**Option C: OpenAI**
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_MODEL=gpt-3.5-turbo
+```
+
+### 3. Start the Application
+
+```bash
+make build && make up
+```
+
+### 4. Ingest Content & Use
+
+```bash
+# Ingest Python documentation
+make ingest-python-docs
+
+# Open the UI
+open http://localhost:7860
+```
+
+---
+
 ## ✨ Features
 
 - **No API Key Required for Embeddings**: Uses Sentence Transformers which run locally
