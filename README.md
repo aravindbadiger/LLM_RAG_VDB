@@ -4,7 +4,7 @@ A complete Retrieval-Augmented Generation (RAG) system for querying Python docum
 - **Sentence Transformers** for embeddings (no API key required!)
 - **Qdrant** vector database for semantic search
 - **Gradio** for the web UI
-- **Ollama** or **OpenAI** for LLM responses
+- **Ollama**, **OpenAI**, or **GitHub Copilot** for LLM responses
 
 ## 🚀 Quick Start
 
@@ -59,20 +59,63 @@ OPENAI_API_KEY=sk-your-api-key-here
 OPENAI_MODEL=gpt-3.5-turbo
 ```
 
-### 3. Start the Application
+### 3. Build and Start Services
 
 ```bash
-make build && make up
+# Build containers
+make build
+
+# Start Qdrant + App (automatically starts Ollama if LLM_PROVIDER=ollama)
+make up
+
+# Check status
+docker compose ps
 ```
 
-### 4. Ingest Content & Use
+Services:
+- **RAG App**: http://localhost:7860
+- **Qdrant Dashboard**: http://localhost:6333/dashboard
+
+### 4. Ingest Content
 
 ```bash
 # Ingest Python documentation
 make ingest-python-docs
 
-# Open the UI
-open http://localhost:7860
+# Or ingest Wikipedia articles
+make ingest-wiki COLLECTION=python-doc QUERY="Python programming language" PAGES=10
+
+# Or ingest from URLs
+make ingest-url COLLECTION=my-docs URLS="https://example.com/page1 https://example.com/page2"
+```
+
+### 5. Use the Application
+
+Open http://localhost:7860 in your browser and start asking questions!
+
+### 6. Manage Collections
+
+```bash
+# List collections
+make schema-list
+
+# Create a new collection
+make schema-create COLLECTION=my-docs
+
+# Delete a collection
+make schema-delete COLLECTION=my-docs
+
+# Clear a collection (keep schema)
+make schema-clear COLLECTION=my-docs
+
+# Get collection info
+make schema-info COLLECTION=python-doc
+```
+
+### 7. Stop Services
+
+```bash
+make down
 ```
 
 ---
@@ -112,78 +155,7 @@ rag_project/
 
 ---
 
-## 🐳 Docker Quick Start (Recommended)
-
-### 1. Setup
-
-```bash
-cd rag_project
-
-# Copy environment template
-cp .env.example .env
-
-# Build containers
-make build
-# or: docker compose build
-```
-
-### 2. Start Services
-
-```bash
-# Start Qdrant + App
-make up
-# or: docker compose up -d
-
-# Check status
-docker compose ps
-```
-
-Services:
-- **RAG App**: http://localhost:7860
-- **Qdrant**: http://localhost:6333
-
-### 3. Ingest Content
-
-```bash
-# Ingest Python documentation
-make ingest-python-docs
-
-# Or ingest Wikipedia articles
-make ingest-wiki COLLECTION=python-doc QUERY="Python programming language" PAGES=10
-
-# Or ingest from URLs
-make ingest-url COLLECTION=my-docs URLS="https://example.com/page1 https://example.com/page2"
-```
-
-### 4. Manage Collections
-
-```bash
-# List collections
-make schema-list
-
-# Create a new collection
-make schema-create COLLECTION=my-docs
-
-# Delete a collection
-make schema-delete COLLECTION=my-docs
-
-# Clear a collection (keep schema)
-make schema-clear COLLECTION=my-docs
-
-# Get collection info
-make schema-info COLLECTION=python-doc
-```
-
-### 5. Stop Services
-
-```bash
-make down
-# or: docker compose down
-```
-
----
-
-## 🚀 Local Quick Start (Without Docker)
+## � Local Setup (Without Docker)
 
 ### 1. Install Dependencies
 
@@ -410,4 +382,3 @@ This project is for educational purposes, based on the RX-M RAG Training labs.
 - [Qdrant](https://qdrant.tech/) for vector database
 - [Gradio](https://gradio.app/) for the UI framework
 - [Ollama](https://ollama.ai/) for local LLM inference
-- [RX-M](https://rx-m.com/) for the RAG training materials
