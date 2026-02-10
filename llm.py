@@ -103,16 +103,18 @@ class OpenAILLM(BaseLLM):
     Requires OPENAI_API_KEY environment variable or config.
     """
     
-    def __init__(self, model: str = None, api_key: str = None):
+    def __init__(self, model: str = None, api_key: str = None, base_url: str = None):
         """
         Initialize OpenAI client.
         
         Args:
             model: Model name (e.g., "gpt-3.5-turbo", "gpt-4").
             api_key: OpenAI API key.
+            base_url: OpenAI API base URL (for custom endpoints).
         """
         self.model = model or config.OPENAI_MODEL
         self.api_key = api_key or config.OPENAI_API_KEY
+        self.base_url = base_url or config.OPENAI_BASE_URL
         
         if not self.api_key:
             raise ValueError(
@@ -122,8 +124,8 @@ class OpenAILLM(BaseLLM):
         
         try:
             from openai import OpenAI
-            self._client = OpenAI(api_key=self.api_key)
-            print(f"Connected to OpenAI. Using model: {self.model}")
+            self._client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+            print(f"Connected to OpenAI at {self.base_url}. Using model: {self.model}")
         except ImportError:
             raise ImportError("Please install openai: pip install openai")
     
