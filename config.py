@@ -5,6 +5,25 @@ Supports environment variables for Docker deployment.
 import os
 from pathlib import Path
 
+# =============================================================================
+# ENVIRONMENT LOADING
+# =============================================================================
+# Local development: Load .env.local (contains localhost URLs)
+# Docker: .env.local does NOT exist (excluded via .dockerignore)
+#         Environment variables come from docker-compose.yml's env_file: .env.docker
+# =============================================================================
+_ENV_LOCAL_FILE = Path(__file__).parent / ".env.local"
+if _ENV_LOCAL_FILE.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_ENV_LOCAL_FILE)
+        print(f"[config] Loaded environment from: {_ENV_LOCAL_FILE}")
+    except ImportError:
+        print("[config] Warning: python-dotenv not installed, using system environment variables")
+else:
+    # This branch runs in Docker where .env.local doesn't exist
+    pass
+
 # Project paths
 PROJECT_ROOT = Path(__file__).parent
 DATA_DIR = PROJECT_ROOT / "data"
@@ -36,7 +55,7 @@ EMBEDDING_MODELS = {
 # Get embedding dimension based on model
 EMBEDDING_DIM = EMBEDDING_MODELS.get(EMBEDDING_MODEL, 384)
 
-# Qdrant settings (Docker-aware)
+# Qdrant settings
 QDRANT_HOST = os.environ.get("QDRANT_HOST", "localhost")
 QDRANT_PORT = int(os.environ.get("QDRANT_PORT", "6333"))
 QDRANT_COLLECTION = os.environ.get("QDRANT_COLLECTION", "python-doc")

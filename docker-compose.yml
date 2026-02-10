@@ -51,19 +51,8 @@ services:
     volumes:
       - ./data:/app/data
       - ./content:/app/content  # Mount content to ingest
-    environment:
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - QDRANT_COLLECTION=${QDRANT_COLLECTION:-python_knowledge}
-      - LLM_PROVIDER=${LLM_PROVIDER:-ollama}
-      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
-      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
-      - GHCP_MODEL=${GHCP_MODEL:-gpt-4o}
-      - GHCP_BASE_URL=${GHCP_BASE_URL:-https://api.githubcopilot.com}
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
-      - GRADIO_SERVER_NAME=0.0.0.0
+    env_file:
+      - .env.docker
     depends_on:
       qdrant:
         condition: service_healthy
@@ -83,10 +72,8 @@ services:
     volumes:
       - ./data:/app/data
       - ./content:/app/content
-    environment:
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+    env_file:
+      - .env.docker
     depends_on:
       qdrant:
         condition: service_healthy
@@ -105,10 +92,8 @@ services:
     volumes:
       - ./data:/app/data
       - ./content:/app/content
-    environment:
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-all-MiniLM-L6-v2}
+    env_file:
+      - .env.docker
     depends_on:
       qdrant:
         condition: service_healthy

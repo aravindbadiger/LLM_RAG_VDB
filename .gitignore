@@ -1,5 +1,11 @@
 # Ignore specific files
-.env
+.env.docker
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
 
 # Ignore all files with a certain extension
 *.log
