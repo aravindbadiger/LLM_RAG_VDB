@@ -46,10 +46,7 @@ rag_project/
 ├── Dockerfile          # App container definition
 ├── docker-compose.yml  # Multi-container orchestration
 ├── Makefile            # Docker command shortcuts
-├── .env.example        # Environment variables template
-└── data/               # Data directory (created automatically)
-    ├── chunks/         # Processed text chunks
-    └── qdrant_storage/ # Local Qdrant database
+└── .env.example        # Environment variables template
 ```
 
 ---

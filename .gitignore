@@ -15,6 +15,7 @@ target/
 tmp/
 temp/
 data/
+content/
 
 # Negate a pattern (include a specific file within an ignored directory)
 !target/classes/application.properties
