@@ -418,7 +418,7 @@ python ingest_data.py --download
 
 ## 📄 License
 
-This project is for educational purposes, based on the RX-M RAG Training labs.
+This project is for educational purposes.
 
 ## 🙏 Acknowledgments
 
