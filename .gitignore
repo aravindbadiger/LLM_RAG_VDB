@@ -1,4 +1,5 @@
     # Ignore specific files
+    .env
 
     # Ignore all files with a certain extension
     *.log
@@ -7,9 +8,6 @@
     *.csv
     *.class
     *.jar
-    .env
-    *.example
-    
 
     # Ignore a directory and its contents
     .vscode/
@@ -21,5 +19,3 @@
     # Negate a pattern (include a specific file within an ignored directory)
     !target/classes/application.properties
     !target/classes/schema.sql
-    !target/generated-sources
-    !target/generated-test-sources
