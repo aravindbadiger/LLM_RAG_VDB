@@ -35,9 +35,31 @@ Requires a GitHub Copilot subscription. Get your token using GitHub CLI:
 
 ```bash
 # Install GitHub CLI if not already installed
-brew install gh  # macOS
-# or: sudo apt install gh  # Ubuntu
 
+# macOS
+brew install gh
+
+# Ubuntu/Debian Linux
+(type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) \
+  && sudo mkdir -p -m 755 /etc/apt/keyrings \
+  && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+  && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+  && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+  && sudo apt update \
+  && sudo apt install gh -y
+
+# Windows (PowerShell)
+winget install --id GitHub.cli
+
+# Windows (Chocolatey)
+choco install gh
+
+# Windows (Scoop)
+scoop install gh
+```
+
+```bash
 # Login to GitHub
 gh auth login
 
@@ -61,6 +83,16 @@ OPENAI_MODEL=gpt-3.5-turbo
 
 ### 3. Build and Start Services
 
+The project uses Docker Compose with the following services:
+
+| Service | Description | Port |
+|---------|-------------|------|
+| `qdrant` | Vector database for storing and searching embeddings | 6333 |
+| `app` | Main RAG application with Gradio web UI | 7860 |
+| `ollama` | Local LLM server (only starts when `LLM_PROVIDER=ollama`) | 11434 |
+| `schema-manager` | CLI utility for managing Qdrant collections | - |
+| `ingest` | Data ingestion service for loading documents | - |
+
 ```bash
 # Build containers
 make build
@@ -72,7 +104,7 @@ make up
 docker compose ps
 ```
 
-Services:
+Access the services:
 - **RAG App**: http://localhost:7860
 - **Qdrant Dashboard**: http://localhost:6333/dashboard
 
