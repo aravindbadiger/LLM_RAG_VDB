@@ -33,7 +33,7 @@ A complete Retrieval-Augmented Generation (RAG) system for querying Python docum
 
 ```
 rag_project/
-├── config.py           # Configuration settings (reads from .env)
+├── config.py           # Configuration settings (reads from .env files)
 ├── embeddings.py       # Sentence Transformer embeddings
 ├── chunking.py         # Document chunking utilities
 ├── qdrant_utils.py     # Qdrant database management
@@ -58,13 +58,13 @@ rag_project/
 ```bash
 cd rag_project
 
-# Copy the environment template
-cp .env.example .env
+# Copy the environment template for Docker
+cp .env.example .env.docker
 ```
 
 ### 2. Configure LLM Provider
 
-Edit `.env` and set your preferred LLM provider:
+Edit `.env.docker` and set your preferred LLM provider:
 
 **Option A: Ollama (Local, Free) - Recommended**
 
@@ -112,7 +112,7 @@ gh auth login
 gh auth token
 ```
 
-Add the token to your `.env` file:
+Add the token to your `.env.docker` file:
 ```bash
 LLM_PROVIDER=ghcp
 GITHUB_TOKEN=gho_your_token_here
@@ -128,7 +128,7 @@ Requires an OpenAI API key (paid service). To get your API key:
 3. Click "Create new secret key" and copy the key
 4. Add billing information at https://platform.openai.com/account/billing
 
-Add the key to your `.env` file:
+Add the key to your `.env.docker` file:
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-your-api-key-here
@@ -218,21 +218,20 @@ pip install -r requirements.txt
 ### 2. Configure Environment
 
 ```bash
-# Copy the environment template
-cp .env.example .env
+# Copy the environment template for local development
+cp .env.example .env.local
 
-# Edit .env and configure your LLM provider (see Quick Start section for details)
+# Edit .env.local and configure your LLM provider (see Quick Start section for details)
+# Important: Use localhost URLs in .env.local (not Docker service names)
 ```
 
-To load `.env` variables when running locally, install python-dotenv:
+Key differences in `.env.local` vs `.env.docker`:
+- `OLLAMA_BASE_URL=http://localhost:11434` (not `http://ollama:11434`)
+- `QDRANT_HOST=localhost` (not `qdrant`)
+
+The app automatically loads `.env.local` when running locally (requires python-dotenv):
 ```bash
 pip install python-dotenv
-```
-
-Or export variables manually:
-```bash
-export LLM_PROVIDER=ollama
-export OLLAMA_MODEL=llama3.2
 ```
 
 ### 3. Install Ollama (If using Ollama)
@@ -282,7 +281,21 @@ Then open http://localhost:7860 in your browser!
 
 ## ⚙️ Configuration
 
-All settings are configured via environment variables (`.env` file). The `config.py` file reads these values with sensible defaults.
+### Environment Files
+
+The project uses separate environment files for Docker and local development:
+
+| File | Purpose | Key Differences |
+|------|---------|----------------|
+| `.env.docker` | Docker Compose deployment | Uses Docker service names: `OLLAMA_BASE_URL=http://ollama:11434`, `QDRANT_HOST=qdrant` |
+| `.env.local` | Local development | Uses localhost: `OLLAMA_BASE_URL=http://localhost:11434`, `QDRANT_HOST=localhost` |
+| `.env.example` | Template for creating env files | Copy to `.env.docker` or `.env.local` |
+
+**How it works:**
+- **Docker**: `docker-compose.yml` loads `.env.docker` via `env_file`
+- **Local**: `config.py` automatically loads `.env.local` if it exists (using python-dotenv)
+
+Both files are gitignored to protect secrets.
 
 ### Key Environment Variables
 
@@ -316,6 +329,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-your-key
+OPENAI_BASE_URL=https://api.openai.com/v1  # Optional, for custom endpoints
 OPENAI_MODEL=gpt-3.5-turbo
 ```
 
