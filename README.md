@@ -6,7 +6,55 @@ A complete Retrieval-Augmented Generation (RAG) system for querying Python docum
 - **Gradio** for the web UI
 - **Ollama**, **OpenAI**, or **GitHub Copilot** for LLM responses
 
-## 🚀 Quick Start
+## 📑 Table of Contents
+
+- [Features](#-features)
+- [Project Structure](#-project-structure)
+- [Quick Start (Docker)](#-quick-start-docker)
+- [Local Setup (Without Docker)](#-local-setup-without-docker)
+- [Configuration](#️-configuration)
+- [Usage Examples](#-usage-examples)
+- [Testing Components](#-testing-components)
+- [Troubleshooting](#-troubleshooting)
+- [License](#-license)
+- [Acknowledgments](#-acknowledgments)
+
+## ✨ Features
+
+- **No API Key Required for Embeddings**: Uses Sentence Transformers which run locally
+- **Local LLM Support**: Works with Ollama for completely free, local AI
+- **Semantic Search**: Find relevant documentation based on meaning, not just keywords
+- **Interactive Chat UI**: User-friendly Gradio interface
+- **Configurable**: Easy to customize models, thresholds, and providers
+- **Docker Support**: Full Docker Compose setup for easy deployment
+- **Multiple Content Sources**: Ingest Python docs, Wikipedia, URLs, or text files
+
+## 📁 Project Structure
+
+```
+rag_project/
+├── config.py           # Configuration settings (reads from .env)
+├── embeddings.py       # Sentence Transformer embeddings
+├── chunking.py         # Document chunking utilities
+├── qdrant_utils.py     # Qdrant database management
+├── llm.py              # LLM providers (Ollama, OpenAI, GHCP)
+├── rag_client.py       # Main RAG application with Gradio UI
+├── ingest_data.py      # Data ingestion script
+├── schema_manager.py   # CLI for managing collections & content
+├── demo.py             # Test script to verify setup
+├── requirements.txt    # Python dependencies
+├── Dockerfile          # App container definition
+├── docker-compose.yml  # Multi-container orchestration
+├── Makefile            # Docker command shortcuts
+├── .env.example        # Environment variables template
+└── data/               # Data directory (created automatically)
+    ├── chunks/         # Processed text chunks
+    └── qdrant_storage/ # Local Qdrant database
+```
+
+---
+
+## 🚀 Quick Start (Docker)
 
 ### 1. Setup Environment
 
@@ -75,6 +123,15 @@ GHCP_MODEL=gpt-4o
 ```
 
 **Option C: OpenAI**
+
+Requires an OpenAI API key (paid service). To get your API key:
+
+1. Go to https://platform.openai.com/signup and create an account (or sign in)
+2. Navigate to https://platform.openai.com/api-keys
+3. Click "Create new secret key" and copy the key
+4. Add billing information at https://platform.openai.com/account/billing
+
+Add the key to your `.env` file:
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-your-api-key-here
@@ -152,42 +209,7 @@ make down
 
 ---
 
-## ✨ Features
-
-- **No API Key Required for Embeddings**: Uses Sentence Transformers which run locally
-- **Local LLM Support**: Works with Ollama for completely free, local AI
-- **Semantic Search**: Find relevant documentation based on meaning, not just keywords
-- **Interactive Chat UI**: User-friendly Gradio interface
-- **Configurable**: Easy to customize models, thresholds, and providers
-- **Docker Support**: Full Docker Compose setup for easy deployment
-- **Multiple Content Sources**: Ingest Python docs, Wikipedia, URLs, or text files
-
-## 📁 Project Structure
-
-```
-rag_project/
-├── config.py           # Configuration settings
-├── embeddings.py       # Sentence Transformer embeddings
-├── chunking.py         # Document chunking utilities
-├── qdrant_utils.py     # Qdrant database management
-├── llm.py              # LLM providers (Ollama, OpenAI)
-├── rag_client.py       # Main RAG application with Gradio UI
-├── ingest_data.py      # Data ingestion script
-├── schema_manager.py   # CLI for managing collections & content
-├── demo.py             # Test script to verify setup
-├── requirements.txt    # Python dependencies
-├── Dockerfile          # App container definition
-├── docker-compose.yml  # Multi-container orchestration
-├── Makefile            # Docker command shortcuts
-├── .env.example        # Environment variables template
-└── data/               # Data directory (created automatically)
-    ├── chunks/         # Processed text chunks
-    └── qdrant_storage/ # Local Qdrant database
-```
-
----
-
-## � Local Setup (Without Docker)
+## 💻 Local Setup (Without Docker)
 
 ### 1. Install Dependencies
 
@@ -196,7 +218,27 @@ cd rag_project
 pip install -r requirements.txt
 ```
 
-### 2. Install Ollama (Recommended - Free Local LLM)
+### 2. Configure Environment
+
+```bash
+# Copy the environment template
+cp .env.example .env
+
+# Edit .env and configure your LLM provider (see Quick Start section for details)
+```
+
+To load `.env` variables when running locally, install python-dotenv:
+```bash
+pip install python-dotenv
+```
+
+Or export variables manually:
+```bash
+export LLM_PROVIDER=ollama
+export OLLAMA_MODEL=llama3.2
+```
+
+### 3. Install Ollama (If using Ollama)
 
 ```bash
 # macOS
@@ -211,7 +253,17 @@ ollama serve
 ollama pull llama3.2
 ```
 
-### 3. Download and Ingest Python Documentation
+### 4. Start Qdrant (Vector Database)
+
+```bash
+# Option A: Run Qdrant via Docker (recommended)
+docker run -d -p 6333:6333 qdrant/qdrant
+
+# Option B: The app can also use local file storage (no Qdrant server needed)
+# Set in .env: USE_QDRANT_SERVER=false
+```
+
+### 5. Download and Ingest Python Documentation
 
 ```bash
 # Download Python 3.10 docs and ingest into Qdrant
@@ -221,7 +273,7 @@ python ingest_data.py --download --version 3.10
 python ingest_data.py --docs-dir /path/to/python-docs
 ```
 
-### 4. Run the RAG Client
+### 6. Run the RAG Client
 
 ```bash
 python rag_client.py
@@ -229,35 +281,55 @@ python rag_client.py
 
 Then open http://localhost:7860 in your browser!
 
+---
+
 ## ⚙️ Configuration
 
-Edit `config.py` to customize:
+All settings are configured via environment variables (`.env` file). The `config.py` file reads these values with sensible defaults.
 
-### Embedding Model
-```python
-# Options (all run locally, no API key needed):
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"        # Fast, 384 dims
-EMBEDDING_MODEL = "all-mpnet-base-v2"        # Better quality, 768 dims
-EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"   # Best quality, 1024 dims
+### Key Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LLM_PROVIDER` | `ollama` | LLM provider: `ollama`, `openai`, `ghcp`, or `mock` |
+| `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Sentence Transformer model for embeddings |
+| `QDRANT_HOST` | `localhost` | Qdrant server host |
+| `QDRANT_PORT` | `6333` | Qdrant server port |
+| `SEARCH_THRESHOLD` | `0.5` | Minimum similarity score (0-1) |
+| `TOP_K_RESULTS` | `5` | Number of context chunks to retrieve |
+
+### Embedding Models
+
+| Model | Dimensions | Speed | Quality |
+|-------|-----------|-------|--------|
+| `all-MiniLM-L6-v2` | 384 | ⚡ Fast | Good |
+| `all-mpnet-base-v2` | 768 | Medium | Better |
+| `BAAI/bge-large-en-v1.5` | 1024 | Slow | Best |
+
+### LLM Provider Settings
+
+**Ollama:**
+```bash
+LLM_PROVIDER=ollama
+OLLAMA_MODEL=llama3.2
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-### LLM Provider
-```python
-# Option 1: Ollama (local, free)
-LLM_PROVIDER = "ollama"
-OLLAMA_MODEL = "llama3.2"  # or "mistral", "gemma2", etc.
-
-# Option 2: OpenAI (requires API key)
-LLM_PROVIDER = "openai"
-OPENAI_API_KEY = "sk-..."  # Or set OPENAI_API_KEY env variable
-OPENAI_MODEL = "gpt-3.5-turbo"
+**OpenAI:**
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-your-key
+OPENAI_MODEL=gpt-3.5-turbo
 ```
 
-### RAG Settings
-```python
-SEARCH_THRESHOLD = 0.5  # Minimum similarity score (0-1)
-TOP_K_RESULTS = 5       # Number of context chunks to retrieve
+**GitHub Copilot:**
+```bash
+LLM_PROVIDER=ghcp
+GITHUB_TOKEN=gho_your_token
+GHCP_MODEL=gpt-4o
 ```
+
+---
 
 ## 📖 Usage Examples
 
@@ -301,62 +373,7 @@ response = client.generate_response(
 print(response)
 ```
 
-## 🔧 Docker Compose Details
-
-The Docker setup includes multiple services:
-
-### Services
-
-| Service | Description | Port |
-|---------|-------------|------|
-| `qdrant` | Vector database | 6333 |
-| `app` | RAG application with Gradio UI | 7860 |
-| `schema-manager` | CLI for managing collections | - |
-| `ingest` | Data ingestion service | - |
-
-### Environment Variables
-
-Copy `.env.example` to `.env` and customize:
-
-```bash
-# LLM Provider (ollama, openai, mock)
-LLM_PROVIDER=mock
-
-# Embedding Model
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-
-# OpenAI (if using)
-OPENAI_API_KEY=sk-your-key
-
-# Ollama (runs on host machine)
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-```
-
-### Using Ollama with Docker
-
-Ollama runs on your host machine (not in Docker). The app container connects via `host.docker.internal`:
-
-```bash
-# On your host machine
-ollama serve
-ollama pull llama3.2
-
-# In .env
-LLM_PROVIDER=ollama
-OLLAMA_BASE_URL=http://host.docker.internal:11434
-```
-
-### Mounting Content
-
-Place files in the `content/` directory to make them available in the container:
-
-```bash
-# Copy files to content directory
-cp /path/to/documents/* content/
-
-# Ingest from container
-make ingest-files COLLECTION=my-docs DIR=/app/content
-```
+---
 
 ## 🧪 Testing Components
 
@@ -374,14 +391,7 @@ python qdrant_utils.py
 python llm.py
 ```
 
-## 📚 Available Embedding Models
-
-| Model | Dimensions | Speed | Quality |
-|-------|-----------|-------|---------|
-| all-MiniLM-L6-v2 | 384 | ⚡ Fast | Good |
-| all-mpnet-base-v2 | 768 | Medium | Better |
-| BAAI/bge-small-en-v1.5 | 384 | ⚡ Fast | Good |
-| BAAI/bge-large-en-v1.5 | 1024 | Slow | Best |
+---
 
 ## 🔧 Troubleshooting
 
@@ -403,6 +413,8 @@ python ingest_data.py --download
 ### OpenAI API errors
 - Check your API key is set correctly
 - Verify you have credits in your OpenAI account
+
+---
 
 ## 📄 License
 
