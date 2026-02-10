@@ -7,8 +7,8 @@ help:
 	@echo ""
 	@echo "Setup & Run:"
 	@echo "  make build          - Build Docker images"
-	@echo "  make up             - Start Qdrant + App (for OpenAI/GHCP)"
-	@echo "  make up-ollama      - Start all services including Ollama"
+	@echo "  make up             - Start services (auto-detects LLM_PROVIDER from .env)"
+	@echo "  make up-ollama      - Force start with Ollama"
 	@echo "  make down           - Stop all services"
 	@echo "  make logs           - View logs"
 	@echo "  make shell          - Open shell in app container"
@@ -50,14 +50,25 @@ build:
 	docker compose build
 
 up:
-	docker compose up -d qdrant app
-	@echo ""
-	@echo "Services started (Qdrant + App)!"
-	@echo "  - Qdrant:  http://localhost:6333"
-	@echo "  - RAG App: http://localhost:7860"
-	@echo ""
-	@echo "Using LLM_PROVIDER from .env (default: ollama)"
-	@echo "For Ollama, run: make start-ollama && make pull-model"
+	@LLM_PROVIDER=$$(grep -E "^LLM_PROVIDER=" .env 2>/dev/null | cut -d= -f2 | tr -d ' "'"'"''); \
+	if [ "$$LLM_PROVIDER" = "ollama" ]; then \
+		echo "LLM_PROVIDER=ollama detected, starting with Ollama..."; \
+		docker compose --profile ollama up -d; \
+		echo ""; \
+		echo "Services started (Qdrant + Ollama + App)!"; \
+		echo "  - Qdrant:  http://localhost:6333"; \
+		echo "  - Ollama:  http://localhost:11434"; \
+		echo "  - RAG App: http://localhost:7860"; \
+		echo ""; \
+		echo "Don't forget to pull a model: make pull-model MODEL=llama3.2"; \
+	else \
+		echo "LLM_PROVIDER=$$LLM_PROVIDER, starting without Ollama..."; \
+		docker compose up -d qdrant app; \
+		echo ""; \
+		echo "Services started (Qdrant + App)!"; \
+		echo "  - Qdrant:  http://localhost:6333"; \
+		echo "  - RAG App: http://localhost:7860"; \
+	fi
 
 up-ollama:
 	docker compose --profile ollama up -d

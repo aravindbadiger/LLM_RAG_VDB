@@ -1,21 +1,21 @@
-    # Ignore specific files
-    .env
+# Ignore specific files
+.env
 
-    # Ignore all files with a certain extension
-    *.log
-    *.tmp
-    *.txt
-    *.csv
-    *.class
-    *.jar
+# Ignore all files with a certain extension
+*.log
+*.tmp
+*.txt
+*.csv
+*.class
+*.jar
 
-    # Ignore a directory and its contents
-    .vscode/
-    target/
-    tmp/
-    temp/
-    data/
+# Ignore a directory and its contents
+.vscode/
+target/
+tmp/
+temp/
+data/
 
-    # Negate a pattern (include a specific file within an ignored directory)
-    !target/classes/application.properties
-    !target/classes/schema.sql
+# Negate a pattern (include a specific file within an ignored directory)
+!target/classes/application.properties
+!target/classes/schema.sql

@@ -219,6 +219,7 @@ def create_gradio_app(rag_client: RAGClient = None) -> gr.Blocks:
                         lines=2
                     )
                     submit_btn = gr.Button("Send", variant="primary", scale=1)
+                    stop_btn = gr.Button("Stop", variant="stop", scale=1)
                 
                 with gr.Row():
                     clear_btn = gr.Button("Clear Chat")
@@ -348,7 +349,8 @@ def create_gradio_app(rag_client: RAGClient = None) -> gr.Blocks:
             [info_text]
         )
         
-        submit_btn.click(
+        # Store event handlers for cancellation
+        submit_event = submit_btn.click(
             user_message,
             [msg, chatbot],
             [msg, chatbot],
@@ -359,7 +361,7 @@ def create_gradio_app(rag_client: RAGClient = None) -> gr.Blocks:
             chatbot
         )
         
-        msg.submit(
+        msg_event = msg.submit(
             user_message,
             [msg, chatbot],
             [msg, chatbot],
@@ -368,6 +370,14 @@ def create_gradio_app(rag_client: RAGClient = None) -> gr.Blocks:
             bot_response,
             [chatbot, sys_prompt, use_rag, top_k, threshold],
             chatbot
+        )
+        
+        # Stop button cancels running generation
+        stop_btn.click(
+            fn=None,
+            inputs=None,
+            outputs=None,
+            cancels=[submit_event, msg_event]
         )
         
         clear_btn.click(clear_chat, None, chatbot)
